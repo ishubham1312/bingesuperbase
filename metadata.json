@@ -1,0 +1,6 @@
+{
+  "name": "BingeBoard",
+  "description": "A modern web application to manage and organize your movies and web series into custom lists. Track what you've watched, rate your favorites, and discover new content.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
