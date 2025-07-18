@@ -3,7 +3,7 @@
 import { User, Movie, UserList, ListItem, MovieCategory, MediaType, Episode, DetailedListItem } from '../types';
 
 // --- TMDB API CONFIG ---
-const API_KEY = 'eae7b604e25cc93b51025d8a7379a202';
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
 
@@ -81,7 +81,7 @@ const transformTmdbItem = (item: any, category?: MovieCategory, details: any = {
         }
         if (combinedData.genre_ids && Array.isArray(combinedData.genre_ids)) { // From list endpoints
             const genreMap = mediaType === 'movie' ? MOVIE_GENRE_MAP : TV_GENRE_MAP;
-            return combinedData.genre_ids.map((id: number) => genreMap[id]).filter((name): name is string => !!name);
+            return combinedData.genre_ids.map((id: number) => genreMap[id]).filter((name: string): name is string => !!name);
         }
         return [];
     };
@@ -467,17 +467,19 @@ export const api = {
         const detailedItemsPromises = sortedItems.map(async (item) => {
             const movieDetails = await this.fetchContentDetails(item.mediaType, item.movieId);
             if (!movieDetails) return null;
-            
-            return {
+            const result = {
                 ...movieDetails,
                 userRating: item.userRating,
                 addedOn: item.addedOn,
-                watchedEpisodes: item.watchedEpisodes,
             };
+            if (item.watchedEpisodes !== undefined) {
+                (result as any).watchedEpisodes = item.watchedEpisodes;
+            }
+            return result;
         });
 
         const detailedItems = await Promise.all(detailedItemsPromises);
-        const validItems = detailedItems.filter((item): item is DetailedListItem => item !== null);
+        const validItems = detailedItems.filter(Boolean) as DetailedListItem[];
 
         return simulateDelay({ list, detailedItems: validItems });
     }
